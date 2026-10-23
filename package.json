@@ -1,0 +1,56 @@
+{
+  "name": "dsh-pet-extras",
+  "version": "0.1.0",
+  "description": "仅配合 dsh-pet 桌宠使用：给宠物加上定时整屏截图、看图播报、与宿主智能体串行对话、窗口锁屏。不提供桌宠本身，需先安装 dsh-pet。",
+  "icon": "assets/logo.svg",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "desktop-pet",
+    "screenshot",
+    "vision",
+    "screen-capture",
+    "cordis"
+  ],
+  "license": "MIT",
+  "author": "amaji61",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amaji61/dsh-pet-extras.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amaji61/dsh-pet-extras/issues"
+  },
+  "homepage": "https://github.com/amaji61/dsh-pet-extras#readme",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "lib",
+    "runtime",
+    "assets",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "dsh": "^0.2.0-rc.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.1-rc.2": "compatible"
+      }
+    }
+  }
+}
