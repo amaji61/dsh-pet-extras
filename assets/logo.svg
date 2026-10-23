@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="dsh-pet-extras">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6ec6ff"/>
+      <stop offset="1" stop-color="#2b8fd6"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".85"/>
+      <stop offset=".45" stop-color="#bfe6ff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 屏幕 / 取景框 -->
+  <rect x="8" y="14" width="36" height="26" rx="5" fill="#12304a"/>
+  <rect x="10.5" y="16.5" width="31" height="21" rx="3.5" fill="url(#body)" opacity=".9"/>
+  <path d="M10.5 30.5 L18 24 L24 30 L29 25.5 L41.5 36 L10.5 36 Z" fill="#ffffff" opacity=".22"/>
+  <rect x="20" y="41" width="12" height="3" rx="1.5" fill="#12304a"/>
+  <rect x="15" y="44" width="22" height="3" rx="1.5" fill="#12304a"/>
+
+  <!-- 镜头 / 眼睛 -->
+  <circle cx="45" cy="41" r="13" fill="#12304a"/>
+  <circle cx="45" cy="41" r="10" fill="url(#lens)"/>
+  <circle cx="45" cy="41" r="6" fill="#2b8fd6"/>
+  <circle cx="45" cy="41" r="3" fill="#0b1f31"/>
+  <circle cx="42.6" cy="38.6" r="2.2" fill="#ffffff" opacity=".95"/>
+  <circle cx="47.4" cy="43.6" r="1.1" fill="#ffffff" opacity=".55"/>
+
+  <!-- 小尾巴，暗示桌宠 -->
+  <path d="M52 50 q7 4 3 10" fill="none" stroke="#2b8fd6" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+</svg>
