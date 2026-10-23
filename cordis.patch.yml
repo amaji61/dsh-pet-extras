@@ -1,0 +1,10 @@
+# dsh-pet-extras 的 bundle patch —— 把扩展插件挂进 DSH 配置树。
+#
+# 约定（与 DSH STORE 上架契约一致）：
+#   - id 必须全局唯一，并与包名一致；商城按它比对 entryIds。
+#   - `id:` 那一行绝不能写行尾注释，否则预检抓不到 entry ID，
+#     整份提交会被判 SUBMISSION_ENTRY_MISSING。
+#   - name 是模块名，与包名一致才能被模块系统解析到 main 字段。
+- insert:
+    - id: dsh-pet-extras
+      name: 'dsh-pet-extras'
