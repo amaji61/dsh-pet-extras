@@ -4,7 +4,7 @@ Extra capabilities for [`dsh-pet`](https://github.com/PC2005-cloud/dsh-pet), the
 
 > **This plugin does not provide the pet itself.** It is meaningless without `dsh-pet` — install that one first.
 >
-> **This is a hobby project by an individual developer, not an official extension, and not affiliated with the `dsh-pet` author.** It is at `0.1.0`, an early release. This is the author's first time publishing on GitHub, so **there may still be bugs**. Issues are welcome and I'll do my best to fix them.
+> **This is a hobby project by an individual developer, not an official extension, and not affiliated with the `dsh-pet` author.** It is at `0.2.0`, an early release. This is the author's first time publishing on GitHub, so **there may still be bugs**. Issues are welcome and I'll do my best to fix them.
 
 > 中文说明见 [README.md](README.md).
 
@@ -100,7 +100,7 @@ Requires `dsh-pet` first — this plugin is an add-on; it does not provide the p
 
 1. **Settings → Plugins → Add plugin**
 2. Enter the **absolute path** of the package, either form:
-   - the `.tgz`: `D:\some\dir\dsh-pet-extras-0.1.0.tgz`
+   - the `.tgz`: `D:\some\dir\dsh-pet-extras-0.2.0.tgz`
    - the extracted folder: `D:\some\dir\package`
 3. Confirm, then restart DSH when prompted
 
@@ -120,7 +120,7 @@ With the profile directory `$DSH_PROFILE` (usually `$DSH_HOME/profiles/desktop` 
 {
   "dependencies": {
     "dsh-pet": "0.3.8",
-    "dsh-pet-extras": "0.1.0"      // (1) added by pnpm add
+    "dsh-pet-extras": "0.2.0"      // (1) added by pnpm add
   },
   "dsh": {
     "profile": {
@@ -150,7 +150,7 @@ Expected: `{"ok":true,"enabled":true,"minGapSec":60}`. A 404 / `no such route` s
 
 ### This version no longer touches any `dsh-pet` file
 
-Early 0.1.0 builds read `screenshotEnabled` / `agentBridgeEnabled` from the `dsh-pet` config file — keys **we had injected into `dsh-pet`'s private config**. Official 0.3.8 has none of them, and updates wipe them. That is exactly why switches stayed off for other people.
+Early 0.1.0/0.1.x builds read `screenshotEnabled` / `agentBridgeEnabled` from the `dsh-pet` config file — keys **we had injected into `dsh-pet`'s private config**. Official 0.3.8 has none of them, and updates wipe them. That is exactly why switches stayed off for other people.
 
 Now the plugin's config is fully **self-contained** (`$DSH_HOME/dsh-pet/extras-config.json`); it does not read `dsh-pet`'s config and does not need `dsh-pet/assets/config.jsonc` edited.
 
@@ -370,14 +370,14 @@ Two gates before each share: **more than `sightShareMinGap` seconds since the la
 - Changes to `sightShareMinGap` **apply automatically** — the helper restarts itself when the interval changes, no manual step needed
 - **The agent bridge is serial.** While you are talking to the pet, the target session is very likely busy (it is the one you are using). The pet has to queue. It waits up to 90 seconds for idle, then answers "busy". This is a design trade-off, not a bug: pick an idle session, or turn the bridge off, if you want instant replies
 - Narration depends on `dsh-pet`. Without it (or with a very old version), analysis still runs but nothing can be spoken (`pet-unavailable`)
-- **This is `0.1.0` and the author's first GitHub release**, so there may be edge cases I have not thought of. If you hit one, please open an issue and attach `$DSH_HOME/dsh-pet/extras.log` — it makes debugging much easier
+- **This is `0.2.0`, the author's first GitHub release**, so there may be edge cases I have not thought of. If you hit one, please open an issue and attach `$DSH_HOME/dsh-pet/extras.log` — it makes debugging much easier
 - Only tested on Windows with the DSH desktop build. Other platforms should work in principle (all paths go through `DSH_HOME`) but have not been tested
 
 ### Work-status bubble vs. pet chat
 
 `dsh-pet` delivers its messages in the shape of an ordinary user message (`source.id` starts with `dsh-pet-`), so the host cannot tell "the human typed this" from "the pet posted this" — which means pet turns also light up the "thinking / tool call" bubble.
 
-> **Early 0.1.0 builds failed on other people's machines with `anchor-miss:fence`**: their anchors relied on a constant that only existed in the `dsh-pet` we had patched locally; stock 0.3.8 has no such constant. It has been rewritten as v2, anchored entirely on **stock code**, and validated on a clean 0.3.8 copy with 12 install tests + 10 behaviour tests.
+> **Early 0.1.0/0.1.x builds failed on other people's machines with `anchor-miss:fence`**: their anchors relied on a constant that only existed in the `dsh-pet` we had patched locally; stock 0.3.8 has no such constant. It has been rewritten as v2, anchored entirely on **stock code**, and validated on a clean 0.3.8 copy with 12 install tests + 10 behaviour tests.
 
 This plugin patches that automatically, but **only after the `dsh-pet` version changes**: it touches its files exactly once per new version, records what it did in `$DSH_HOME/dsh-pet/extras-state.json`, and otherwise stays out of the way. Notes:
 
