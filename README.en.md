@@ -4,7 +4,7 @@ Extra capabilities for [`dsh-pet`](https://github.com/PC2005-cloud/dsh-pet), the
 
 > **This plugin does not provide the pet itself.** It is meaningless without `dsh-pet` — install that one first.
 >
-> **This is a hobby project by an individual developer, not an official extension, and not affiliated with the `dsh-pet` author.** It is at `0.2.0`, an early release. This is the author's first time publishing on GitHub, so **there may still be bugs**. Issues are welcome and I'll do my best to fix them.
+> **This is a hobby project by an individual developer, not an official extension, and not affiliated with the `dsh-pet` author.** It is at `0.2.3`, an early release. This is the author's first time publishing on GitHub, so **there may still be bugs**. Issues are welcome and I'll do my best to fix them.
 
 > 中文说明见 [README.md](README.md).
 
@@ -80,7 +80,7 @@ what you say / what is on screen
 | **Agent bridge** | The foundation. What you say to the pet is delivered into a real DSH session, and that session's reply is spoken back through the pet, sentence by sentence. Shares that session's context and memory. **Turn it off and the two below stop working** | Off |
 | **Watch the screen** | One switch for the whole thing: grabs the primary display every N seconds (local PNG) **and hands that shot to the connected session**, which answers in one or two lines using its own context and memory — shown in the bubble above the pet. **Turning it on always calls the model and costs tokens**; turning it off stops everything. There is no "capture only, never share" mode | Off |
 | **Sight archive** | Every look stores the **original screenshot + the session's raw analysis** in `dsh-pet/视野/` (one folder per day, kept 7 days). Never loaded into context; open it when you want to know what was on screen yesterday afternoon | On |
-| **Keep on screen** | Pushes the `confineToScreen` flag to `dsh-pet` so the pet window cannot leave the screen bounds | On |
+| **Keep on screen** | Pushes the `confineToScreen` flag to `dsh-pet` so the pet window cannot leave the screen bounds. **Off by default**: the plugin only takes over after you set it explicitly via `/dsh-pet-extras/confine` — installing it never quietly rewrites `dsh-pet`'s config | Off (unmanaged) |
 
 ### Settings page
 
@@ -100,7 +100,7 @@ Requires `dsh-pet` first — this plugin is an add-on; it does not provide the p
 
 1. **Settings → Plugins → Add plugin**
 2. Enter the **absolute path** of the package, either form:
-   - the `.tgz`: `D:\some\dir\dsh-pet-extras-0.2.0.tgz`
+   - the `.tgz`: `D:\some\dir\dsh-pet-extras-0.2.3.tgz`
    - the extracted folder: `D:\some\dir\package`
 3. Confirm, then restart DSH when prompted
 
@@ -120,7 +120,7 @@ With the profile directory `$DSH_PROFILE` (usually `$DSH_HOME/profiles/desktop` 
 {
   "dependencies": {
     "dsh-pet": "0.3.8",
-    "dsh-pet-extras": "0.2.0"      // (1) added by pnpm add
+    "dsh-pet-extras": "0.2.3"      // (1) added by pnpm add
   },
   "dsh": {
     "profile": {
@@ -177,19 +177,19 @@ curl -X PUT http://127.0.0.1:<PORT>/dsh-pet-extras/config \
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `agentBridgeEnabled` | bool | `false` | **The foundation switch**: deliver pet messages to a host session. **Turn it off and "Watch the screen" cannot deliver either** — narration goes through this same path |
 | `targetSessionId` | string | `""` | **Connected session** (the authoritative key): the full session id, e.g. `session-1d86…`. **Empty = no delivery and no capture.** If the id no longer exists, nothing is delivered — it never silently switches to another session |
-| `agentBridgeTarget` | string | `""` | Legacy: session title. The settings page writes it alongside `targetSessionId`; used only as a fallback when `targetSessionId` is empty |
-| `screenshotEnabled` | bool | `false` | **Watch-the-screen master switch**: on = timed capture + every shot handed to the connected session (costs tokens per image); off = everything stops. **Requires `agentBridgeEnabled` to be on as well** |
+| `agentBridgeTarget` | string | `""` | Legacy: session title. The settings page writes it alongside `targetSessionId`. It is used **only when the config file has no `targetSessionId` key at all** (i.e. upgraded from an old version). Once that key exists the title stops matching entirely — even an empty string counts as you clearing it deliberately, so empty means empty |
+| `screenshotEnabled` | bool | `false` | **Watch-the-screen master switch**: on = timed capture + every shot handed to the connected session (costs tokens per image); off = everything stops. **You also need a target session selected below** — with none selected nothing is delivered |
 | `sightShareMinGap` | number | `60` | **The only pace knob**: minimum seconds between one share and the next (minimum 5). This is a **gate, not a metronome** — real triggering is also affected by the screenshot helper's 20-second polling alignment, the session's generation time, and occasional skipped ticks. See "Real pacing" below. For a steadier cadence use a multiple of 20 |
 | ~~`screenshotIntervalSec`~~ | number | `20` | **Deprecated**: the interval is decided by `sightShareMinGap` above. The default stays only so old config files still parse; changing it has no effect |
-| `confineToScreen` | bool | `true` | Keep the window inside the screen work area |
+| `confineToScreen` | bool | `true` | The value to push when you want the window kept inside the work area. **Only effective when `confineManaged` is `true`** (set automatically by `/dsh-pet-extras/confine`) |
+| `confineManaged` | bool | `false` | Whether the plugin manages `dsh-pet`'s `confineToScreen`. **Default `false` = hands off**, so installs never touch `dsh-pet`'s config on their own |
 | `screenshotKeep` | number | `60` | How many screenshot files to keep (1–2000); oldest deleted first |
 | `lookLearnEnabled` | bool | `false` | Self-learning for narration (see below) |
 | `lookRulesMaxChars` | number | `1200` | Stop applying learned rules beyond this length (0–4000) |
 | Extra narration rules | file | — | Written in `$DSH_HOME/dsh-pet/看图播报要求.md` (not a config key; a template is created on first use) |
 
-> **Switch dependencies**: `agentBridgeEnabled` is the foundation and `screenshotEnabled` sits on top of it. Both on means "Watch the screen" is actually running; `screenshotEnabled` alone only ever reports `disabled`.
+> **You need both**: ① "Watch the screen" turned on; ② a target session selected. With the switch on but no session selected, nothing is delivered — deliberately, so images never land in an unrelated session.
 
 > **Note**: there is no synchronisation with the `dsh-pet` settings page — that claim (and the code behind it) is gone. This plugin's settings are edited only in Settings → Pet extras.
 
@@ -347,7 +347,7 @@ Narration has exactly **one** path: the screenshot is handed to the connected se
 | (early `sightingInject`, removed) | One sentence | A retelling (knows "watching Douyin", never saw the picture) | Very low |
 | **Current narration** | **The screenshot itself** | Really sees it, can judge on its own, and it lands in the conversation | **≈76k tokens per share** (97% of it is that session's history; the image itself is only 1–2k) |
 
-Two gates before each share: **more than `sightShareMinGap` seconds since the last share**, and **the session itself says the scene changed** (answering with a bare "没" meaning "nothing new", or replying almost the same as last time, sends nothing).
+Two gates before each share: **more than `sightShareMinGap` seconds since the last share**, and **a local pixel comparison says this screen differs from the last one actually shared**. The frame is reduced to a 32×20 grid of average colours; if fewer than 5% of cells changed, the round is skipped entirely — nothing enters the session, no tokens are spent, and the pet says nothing. A moving cursor, a ticking clock, scrolling comments or a creeping progress bar touch too few cells to matter; switching windows or pages changes large areas at once. The comparison lives in `lib/screen-diff.js` (zero-dependency, reusing the decoder from `png-shrink.js`) and costs ~100 ms per shot. Thresholds were calibrated on 60 real screenshots plus 8 synthetic scenarios: worst noise 3.1%, smallest real change 9.8%.
 
 > **Why the "share toggle" is gone**: early versions had a `sightShareEnabled` flag that only controlled "attach the image or not". Turning it off produced "send a sentence without the picture" — the session was told *go look at the screen* while seeing nothing, so it could only make things up. After the merge: **narration means sharing the screenshot; if you don't want to share, don't narrate** — decided solely by `screenshotEnabled`. `sightShareMinGap` stays, because "how often to look" is a knob that genuinely needs tuning.
 
@@ -368,9 +368,9 @@ Two gates before each share: **more than `sightShareMinGap` seconds since the la
 
 - **Desktop mode only** (`display: desktop`). In web mode there is no Electron process and capture is unavailable
 - Changes to `sightShareMinGap` **apply automatically** — the helper restarts itself when the interval changes, no manual step needed
-- **The agent bridge is serial.** While you are talking to the pet, the target session is very likely busy (it is the one you are using). The pet has to queue. It waits up to 90 seconds for idle, then answers "busy". This is a design trade-off, not a bug: pick an idle session, or turn the bridge off, if you want instant replies
+- **The agent bridge is serial.** While you are talking to the pet, the target session is very likely busy (it is the one you are using). The pet has to queue. **Chat waits up to 90 seconds** for idle, then answers "busy"; **the screen watch gives up after 10 seconds** and yields the turn (captures come every 20 seconds, so waiting 90 seconds would let newer shots overwrite the queued ones). This is a design trade-off, not a bug: pick an idle session, or turn the bridge off, if you want instant replies
 - Narration depends on `dsh-pet`. Without it (or with a very old version), analysis still runs but nothing can be spoken (`pet-unavailable`)
-- **This is `0.2.0`, the author's first GitHub release**, so there may be edge cases I have not thought of. If you hit one, please open an issue and attach `$DSH_HOME/dsh-pet/extras.log` — it makes debugging much easier
+- **This is `0.2.3`, the author's first GitHub release**, so there may be edge cases I have not thought of. If you hit one, please open an issue and attach `$DSH_HOME/dsh-pet/extras.log` — it makes debugging much easier
 - Only tested on Windows with the DSH desktop build. Other platforms should work in principle (all paths go through `DSH_HOME`) but have not been tested
 
 ### Work-status bubble vs. pet chat
@@ -391,13 +391,20 @@ If the auto-patch does not land (check the `工作状态补丁` lines in `extras
 ---
 
 
-### This plugin modifies files in `dsh-pet` — here is exactly what and why
+### This plugin modifies files in `dsh-pet` — two patches, here is exactly what and why
 
 To be upfront: **this plugin modifies one source file of the `dsh-pet` you installed** (`node_modules/dsh-pet/lib/index.js`). This section lays every change out.
 
 **Why it has to**: the work-status bubble ("thinking… / calling tools") is computed by `dsh-pet` itself. It listens to all session events from the host and raises the status by event type. Messages delivered by the pet look like `{kind:"user", id:"dsh-pet-<timestamp>"}` — **structurally identical** to something you typed, so `dsh-pet` cannot tell them apart, and the pet's turns light the bubble as if work were happening. The plugin cannot intercept this: those events go from the host to `dsh-pet`, and the plugin is not on that chain.
 
-**The exact edits (4 insertions, all anchored on stock 0.3.8 code)**:
+**Two patches in total**:
+
+- **Patch A | work-status guard** (4 insertions) — keeps the pet's turns from lighting the "thinking… / calling tools" bubble
+- **Patch B | agent-bridge hook** (2 insertions) — lets what the pet says be answered by your real session
+
+**Why Patch B is required**: the plugin cannot reach `dsh-pet`'s `chatWithPet`, so the chat path needs one call site inside `dsh-pet`. That call site does very little — it POSTs a line of text to the plugin and speaks whatever comes back. **With the plugin uninstalled, Patch B not applied, or the switch off, `dsh-pet` behaves exactly like stock** (the hook returns nothing and the original `generateChat` runs).
+
+**Patch A — the exact edits (4 insertions, all anchored on stock 0.3.8 code)**:
 
 | # | Anchor (present in stock `dsh-pet`) | What it does |
 |---|---|---|
@@ -406,14 +413,25 @@ To be upfront: **this plugin modifies one source file of the `dsh-pet` you insta
 | 3 | the `if (type === "turn/start") {` branch | records whether this turn was started by the pet, following the queue semantics |
 | 4 | before `const next = reduceWorkStatus(…);` | events from the pet's turn `return` immediately and never enter work status; on `turn/end` the flags clear and `workStatus.clear` runs |
 
+**Patch B — the exact edits (2 insertions)**:
+
+| # | Anchor (present in stock `dsh-pet`) | What it does |
+|---|---|---|
+| 1 | before the `const chatWithPet = async (petId, text` line | inserts `bridgeChatViaExtras()`, which POSTs the text to the plugin's `/dsh-pet-extras/agent` and returns the session's answer; returns nothing when unreachable |
+| 2 | before the `const generated = await generateChat(…)` line | asks the plugin first; if it handles it, speaks the answer (**and writes the bubble itself** — otherwise the session replies but the pet stays silent); otherwise falls through to the original `generateChat` |
+
+Patch B's anchor only matches the head of the signature (`const chatWithPet = async (petId, text`), because stock 0.3.8 declares `(petId, text)` with no `images` parameter. Matching a prefix keeps it compatible with versions that do and do not take `images`.
+
 **What is NOT touched**: message delivery, screenshots, shrinking, the sight archive, session contents, and any data file — **none of it**. The patch only changes "how a turn's events count as work status".
 
 **How it stays safe**:
 
 - Only acts on the first start after a version change, records it in `$DSH_HOME/dsh-pet/extras-state.json`, and stays out of the way while the version is unchanged
+- The state also records a **patch-scheme code** (`ws+bridge` today): upgrading the scheme (for example adding a third patch later) forces one re-run, so nothing is silently skipped just because the version did not change
+- The two patches are judged **independently**: if only one is missing, only that one is inserted
 - Backs up to `lib/index.js.bak-workstatus-guard` first (once only, keeping the original)
 - Only patches the `0.x` series; if a structural change makes an anchor miss, it **gives up and logs**, never forcing an edit
-- Verifies all 4 fingerprints after editing and abandons the whole thing if any is missing
+- Verifies every fingerprint after editing (4 for Patch A, 2 for Patch B) and abandons the whole thing if any is missing
 - Edits the on-disk source; **takes effect on the next DSH start**
 
 **To undo**:
@@ -425,7 +443,7 @@ cp "$DSH_HOME/profiles/desktop/node_modules/dsh-pet/lib/index.js.bak-workstatus-
 
 Then delete the `petWorkStatusPatch` entry from `$DSH_HOME/dsh-pet/extras-state.json` (that file holds only this one entry, so deleting the file also works).
 
-**Do not want it patched at all?** Uninstall the plugin. If auto-patching does not take effect, `extras.log` has `工作状态补丁` lines explaining why.
+**Do not want it patched at all?** Uninstall the plugin. If auto-patching does not take effect, `extras.log` has a `dsh-pet 补丁没打上（原因）` line explaining why. Common reasons: `anchor-miss:*` (a newer `dsh-pet` changed structure) and `series-mismatch` (not a `0.x` release).
 
 ## Uninstallation
 
@@ -453,13 +471,19 @@ Uninstalling **does not delete your data**. To clean up fully, remove these (all
 ## FAQ
 
 **I cannot see any settings.**
-This plugin has its own settings page: **Settings → Pet extras** (the "Watch the screen" switch and interval provided by `dsh-pet-extras`; the section is hidden when `dsh-pet` is not installed). In addition, the `screenshotEnabled` and `agentBridgeEnabled` keys are the same keys the `dsh-pet` settings page uses, so changing them from either side works.
+This plugin has its own settings page: **Settings → Pet extras** (the "Watch the screen" switch, the interval, and which session to connect — provided by `dsh-pet-extras`; the section is hidden when `dsh-pet` is not installed).
 
 **"Watch the screen" is enabled but the screenshot directory stays empty.**
 Check two things: (1) the pet's display mode is `desktop` (web mode has no Electron process); (2) `GET /dsh-pet-extras/screenshot` reports `enabled: true`. After changing the interval, the helper must restart — a manual `POST /dsh-pet-extras/screenshot` triggers that restart immediately.
 
 **The pet takes a long time to reply, or just says "busy".**
-The agent bridge is serial: while the target session is running a task, the pet must queue. It waits at most 90 seconds for idle. For instant replies, turn the bridge off or point it at an idle session (by title or id).
+The agent bridge is serial: while the target session is running a task, the pet must queue. **Chat waits up to 90 seconds for idle; the screen watch waits only 10 seconds** (captures come every 20 seconds, so waiting 90 seconds means the shots taken meanwhile get overwritten by newer ones — you end up watching the screen and seeing nothing). For instant replies, point it at an idle session.
+
+**I cleared the "connected session", but images still go to the old one.**
+An early `0.2.0` build had this bug: the config stored both `targetSessionId` (id) and `agentBridgeTarget` (title), so clearing only the id let the title silently take over. Fixed — once the `targetSessionId` key exists (even as an empty string), the title no longer participates in matching. If your config came from an older version (the file has no `targetSessionId` key at all), the title still acts as a migration fallback; saving once from the settings page writes that key and retires the title for good.
+
+**I changed monitors or display scaling and the pet window is off-screen again.**
+By default the plugin does not manage this. To have it manage, call `PUT /dsh-pet-extras/confine` with `{"value":true}` — that also sets `confineManaged`, after which the plugin pushes the value at startup and on config changes. Until you do, it never touches `dsh-pet`'s `confineToScreen`.
 
 **Narration has gone quiet for a while.**
 That is intentional. The model occasionally emits report-style text ("the screen shows a screenshot with…"), and the plugin drops it rather than reading it aloud. Several silent rounds in a row means the screen content genuinely did not lend itself to a human-sounding remark.

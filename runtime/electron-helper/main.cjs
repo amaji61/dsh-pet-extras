@@ -82,6 +82,11 @@ async function captureScreen(reason) {
 				fs.unlinkSync(path.join(SHOT_DIR, old));
 			} catch {}
 		}
+		// **截完立刻广播出去**：插件侧原来是每 20 秒轮询目录找新图，
+		// 图在「刚轮询完」那一刻落盘就要白等一整个周期（平均 10 秒、最坏 20 秒），
+		// 用户看到的就是「截图不是即时的」。打一行带文件名的日志，插件收到就直接开跑。
+		// 只打文件名不打包路径：路径里可能有空格/中文，正则好写，插件侧自己拼目录。
+		process.stdout.write('[extras-shot] shot ' + name + '\n');
 		return { ok: true, file, bytes: png.length, width: image.getSize().width, height: image.getSize().height, reason };
 	} catch (e) {
 		return { ok: false, reason: 'shot-failed', message: e instanceof Error ? e.message : String(e) };
